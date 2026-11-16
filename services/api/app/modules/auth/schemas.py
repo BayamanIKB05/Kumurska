@@ -35,6 +35,11 @@ class RegisterRequest(BaseModel):
         return value
 
 
+class LoginRequest(BaseModel):
+    phone: Phone
+    password: Annotated[str, Field(min_length=1, max_length=128)]
+
+
 class OtpVerifyRequest(BaseModel):
     verification_id: UUID
     code: Annotated[str, StringConstraints(pattern=r"^\d{1,10}$")]
@@ -49,6 +54,10 @@ class OtpSentResponse(BaseModel):
     phone_masked: str = Field(examples=["+996 *** *** 456"])
     expires_in: int = Field(description="Секунд до истечения кода")
     resend_in: int = Field(description="Секунд до возможности запросить новый код")
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: Annotated[str, Field(min_length=1, max_length=256)]
 
 
 class TokenResponse(BaseModel):

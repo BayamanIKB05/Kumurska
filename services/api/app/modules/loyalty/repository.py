@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.loyalty.models import (
+    AccountStatus,
     BonusAccount,
     BonusTransaction,
     LevelStatus,
@@ -47,3 +48,20 @@ async def get_purchase_transactions(
 
     result = await session.execute(stmt)
     return list(result.scalars().all())
+
+
+async def get_account_with_level(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+) -> tuple[BonusAccount, LoyaltyLevel] | None:
+    stmt = (
+        select(BonusAccount, LoyaltyLevel)
+        .join(LoyaltyLevel, LoyaltyLevel.id == BonusAccount.level_id)
+        .where(
+            BonusAccount.user_id == user_id,
+            BonusAccount.status == AccountStatus.ACTIVE,
+        )
+    )
+
+    result = await session.execute(stmt)
+    return result.one_or_none()
