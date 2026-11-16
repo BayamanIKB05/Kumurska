@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
-from app.modules.loyalty.models import TransactionType
+from app.modules.loyalty import service as loyalty_service
 from app.modules.purchases import repository
 from app.modules.purchases.schemas import PurchaseRead
 
@@ -33,22 +33,10 @@ async def get_purchase_details(
         purchase_id,
     )
 
-    transactions = await repository.get_purchase_transactions(
+    points_redeemed, cashback_earned = await loyalty_service.get_purchase_rewards(
         session,
         purchase_id,
         user_id,
-    )
-
-    points_redeemed = sum(
-        transaction.amount
-        for transaction in transactions
-        if transaction.type == TransactionType.REDEMPTION
-    )
-
-    cashback_earned = sum(
-        transaction.amount
-        for transaction in transactions
-        if transaction.type == TransactionType.ACCRUAL
     )
 
     return PurchaseRead(

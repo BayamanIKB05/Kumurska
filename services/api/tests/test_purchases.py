@@ -86,7 +86,7 @@ async def create_bonus_data(
             account_id=account.id,
             purchase_id=purchase_id,
             type=TransactionType.REDEMPTION,
-            amount=300,
+            amount=-300,
             status=TransactionStatus.CONFIRMED,
         ),
         BonusTransaction(
@@ -233,7 +233,7 @@ async def test_purchase_ignores_pending_and_cancelled_transactions(
                 account_id=account.id,
                 purchase_id=purchase.id,
                 type=TransactionType.REDEMPTION,
-                amount=100,
+                amount=-100,
                 status=TransactionStatus.PENDING,
             ),
             BonusTransaction(
@@ -285,7 +285,7 @@ async def test_purchase_sums_only_redemptions_and_accruals(
                 account_id=account.id,
                 purchase_id=purchase.id,
                 type=TransactionType.REDEMPTION,
-                amount=70,
+                amount=-70,
                 status=TransactionStatus.CONFIRMED,
             ),
             BonusTransaction(

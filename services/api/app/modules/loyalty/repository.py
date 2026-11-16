@@ -1,10 +1,17 @@
 # app/modules/loyalty/repository.py
+import uuid
 from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.loyalty.models import BonusAccount, LevelStatus, LoyaltyLevel
+from app.modules.loyalty.models import (
+    BonusAccount,
+    BonusTransaction,
+    LevelStatus,
+    LoyaltyLevel,
+    TransactionStatus,
+)
 
 
 async def get_entry_level(session: AsyncSession, now: datetime) -> LoyaltyLevel | None:
@@ -20,3 +27,23 @@ async def get_entry_level(session: AsyncSession, now: datetime) -> LoyaltyLevel 
 
 def add_account(session: AsyncSession, account: BonusAccount) -> None:
     session.add(account)
+
+
+async def get_purchase_transactions(
+    session: AsyncSession,
+    purchase_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> list[BonusTransaction]:
+    stmt = (
+        select(BonusTransaction)
+        .join(BonusAccount, BonusTransaction.account_id == BonusAccount.id)
+        .where(
+            BonusTransaction.purchase_id == purchase_id,
+            BonusAccount.user_id == user_id,
+            BonusTransaction.status == TransactionStatus.CONFIRMED,
+        )
+        .order_by(BonusTransaction.created_at.asc())
+    )
+
+    result = await session.execute(stmt)
+    return list(result.scalars().all())

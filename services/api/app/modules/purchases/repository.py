@@ -5,11 +5,6 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.loyalty.models import (
-    BonusAccount,
-    BonusTransaction,
-    TransactionStatus,
-)
 from app.modules.purchases.models import Purchase, PurchaseItem
 
 
@@ -34,26 +29,6 @@ async def get_purchase_items(
         select(PurchaseItem)
         .where(PurchaseItem.purchase_id == purchase_id)
         .order_by(PurchaseItem.created_at.asc())
-    )
-
-    result = await session.execute(stmt)
-    return list(result.scalars().all())
-
-
-async def get_purchase_transactions(
-    session: AsyncSession,
-    purchase_id: UUID,
-    user_id: UUID,
-) -> list[BonusTransaction]:
-    stmt = (
-        select(BonusTransaction)
-        .join(BonusAccount, BonusTransaction.account_id == BonusAccount.id)
-        .where(
-            BonusTransaction.purchase_id == purchase_id,
-            BonusAccount.user_id == user_id,
-            BonusTransaction.status == TransactionStatus.CONFIRMED,
-        )
-        .order_by(BonusTransaction.created_at.asc())
     )
 
     result = await session.execute(stmt)
