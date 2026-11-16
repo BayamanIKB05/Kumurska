@@ -61,6 +61,7 @@ async def test_repository_returns_only_upcoming_published_events(session_factory
         )
 
         assert [event.id for event in result] == [
+            started_event.id,
             second_event.id,
             first_event.id,
         ]

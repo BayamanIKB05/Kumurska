@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.content.models import ContentStatus, Event
@@ -17,7 +17,13 @@ async def get_upcoming_events(
 ) -> list[Event]:
     query = select(Event).where(
         Event.status == ContentStatus.PUBLISHED,
-        Event.starts_at > now,
+        or_(
+            Event.ends_at > now,
+            and_(
+                Event.ends_at.is_(None),
+                Event.starts_at > now,
+            ),
+        ),
     )
 
     if cursor is not None:
