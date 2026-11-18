@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
 from app.modules.loyalty import repository
-from app.modules.loyalty.models import BonusAccount
+from app.modules.loyalty.models import BonusAccount, TransactionType
 from app.modules.loyalty.schemas import BonusAccountRead
 
 
@@ -19,6 +19,35 @@ async def open_account(session: AsyncSession, user_id: uuid.UUID) -> BonusAccoun
     repository.add_account(session, account)
     await session.flush()
     return account
+
+
+async def get_purchase_rewards(
+    session: AsyncSession,
+    purchase_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> tuple[int, int]:
+    """Возвращает количество списанных баллов и начисленный кешбэк по покупке."""
+    transactions = await repository.get_purchase_transactions(
+        session,
+        purchase_id,
+        user_id,
+    )
+
+    points_redeemed = abs(
+        sum(
+            transaction.amount
+            for transaction in transactions
+            if transaction.type == TransactionType.REDEMPTION
+        )
+    )
+
+    cashback_earned = sum(
+        transaction.amount
+        for transaction in transactions
+        if transaction.type == TransactionType.ACCRUAL
+    )
+
+    return points_redeemed, cashback_earned
 
 
 async def get_account(
